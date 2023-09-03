@@ -1,0 +1,46 @@
+name: CI
+
+on: 
+  push:
+    branches: 
+      - master
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    
+    # 通过 GitHub Actions 的 Secrets 功能，将 GitHub 仓库的 SSH 私钥配置到 GitHub Actions 的运行环境中
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # 配置 Node.js 环境（假定你的项目依赖 Node.js）
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18
+
+      # 安装依赖
+      - name: Install Dependencies
+        run: yarn install
+
+      # 构建
+      - name: Build
+        run: yarn prod-build
+
+      # 克隆 material-preview.angular.cn
+      - name: Checkout material-preview.angular.cn
+        run: |
+          if [[ ! -d "./material-preview.angular.cn" ]]; then
+            git clone git@github.com:ng-docs/material-preview.angular.cn.git
+          fi
+
+      # 拷贝构建产物
+      - name: Deploy to material-preview.angular.cn
+        run: |
+          cp -r ./dist/material-angular-io/* ./material-preview.angular.cn
+          cd ./material-preview.angular.cn
+          cp index.html 404.html
+          git add .
+          git commit --allow-empty -am "$(git log --oneline -n 1)" || true
+          git push
