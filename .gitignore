@@ -51,6 +51,7 @@ ui-debug.log
 .firebaserc
 
 #System Files
+.yarn
 .DS_Store
 Thumbs.db
 
